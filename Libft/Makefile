@@ -61,12 +61,11 @@ RELEVANT_OBJS = $(OBJS)
 endif
 
 %.o : %.c libft.h
-		@$(CC) $(FLAGS) -c $<
-		@echo "Compiling $<"
+	@$(CC) $(FLAGS) -c $<
 
 $(NAME): $(RELEVANT_OBJS)
 	@ar -cr $(NAME) $(RELEVANT_OBJS)
-	@echo "Creating archive file"
+	@echo "Creating Libft archive file"
 
 all: $(NAME)
 

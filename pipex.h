@@ -9,7 +9,6 @@ typedef struct s_pipe
 	int		outfile;
 	int		size;
 
-	char	**envp;
 	char	**commands;
 	char	**paths;
 
@@ -20,8 +19,9 @@ typedef struct s_pipe
 }	t_pipe;
 
 char	**ft_get_commands(char **argv, int len);
+char	**ft_split_commands(char *s, char c);
 
-void	ft_child_process(int fd, t_pipe pipex, int *pipefd);
-void	ft_parent_process(int fd, t_pipe pipex, int *pipefd);
+void	ft_child1_process(t_pipe pipex, int *pipefd, char **envp);
+void	ft_child2_process(t_pipe pipex, int *pipefd, char **envp);
 
 #endif

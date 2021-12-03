@@ -1,5 +1,5 @@
 #include "libft.h"
-char	*ft_strjoin(char const *s1, char const *s2)
+char	*ft_strjoin(char *s1, char const *s2)
 {
 	char	*str;
 	int		l1;
@@ -15,5 +15,6 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	ft_memmove(str, (char *)s1, l1);
 	ft_memmove(str + l1, (char *)s2, l2);
 	str[l1 + l2] = '\0';
+	free(s1);
 	return (str);
 }

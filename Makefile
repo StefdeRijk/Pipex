@@ -8,6 +8,7 @@ ARCHIVE = ./Libft/libft.a
 FILES =	main.c\
 		utils.c\
 		processes.c\
+		split_commands.c\
 
 OBJS = $(FILES:.c=.o)
 
