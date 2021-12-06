@@ -10,18 +10,24 @@ t_pipe		ft_get_data(t_pipe pipex, char **envp);
 int	main(int argc, char **argv, char **envp)
 {
 	t_pipe	pipex;
-	int		i;
 	int		status;
 
-	i = 0;
 	if (argc < 5)
-		return (0);
+		exit(127);
 	pipex.infile = open(argv[1], O_RDONLY);
 	pipex.outfile = open(argv[argc - 1], O_RDWR | O_CREAT | O_TRUNC, 0644);
 	if (pipex.infile < 0 || pipex.outfile < 0)
 	{
-		perror("File not found");
+		perror("bash: input");
+		if (pipex.outfile < 0)
+			exit(127);
+		write(pipex.outfile, "       0\n", 9);
 		return (0);
+	}
+	if (!*envp)
+	{
+		write(pipex.outfile, "       1\n", 9);
+		exit(0);
 	}
 	pipex.commands = ft_get_commands(argv, argc - 3);
 	pipex.size = argc - 3;
@@ -79,11 +85,5 @@ t_pipe	ft_get_data(t_pipe pipex, char **envp)
 	}
 	pipex.cmd1_flag = ft_split_commands(pipex.commands[0], ' ');
 	pipex.cmd2_flag = ft_split_commands(pipex.commands[1], ' ');
-	// i = 0;
-	// while (pipex.commands[i])
-	// {
-	// 	printf("%s\n", pipex.commands[i]);
-	// 	i++;
-	// }
 	return (pipex);
 }

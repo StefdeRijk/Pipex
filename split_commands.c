@@ -1,55 +1,37 @@
 #include "pipex.h"
 static int	ft_words(char *s, char c);
 
-static int	ft_copy(char *arr, char *s, char c, int pos);
+static char	*ft_copy(char *arr, char *s, char c);
 
-static char	**ft_fill(char **arr, int words, char const *s, char c);
+static char	*ft_next_word(char *s, char c);
 
 static void	ft_free(char **arr, int i);
 
-char	**ft_split_commands(char *s, char c)
+char	**ft_split_commands(char const *s, char c)
 {
 	char	**arr;
 	int		words;
+	int		i;
 
 	if (!s)
 		return (0);
+	i = 0;
 	words = ft_words((char *)s, c);
 	arr = malloc((words + 1) * sizeof(char *));
 	if (!arr)
 		return (0);
-	ft_fill(arr, words, s, c);
-	if (!arr)
-		return (0);
-	return (arr);
-}
-
-static char	**ft_fill(char **arr, int words, char const *s, char c)
-{
-	int		i;
-	int		len;
-	int		pos;
-
-	i = 0;
-	pos = 0;
-	while (words > 0)
+	while (i < words)
 	{
-		while (s[pos] == c)
-			pos++;
-		len = 0;
-		while (s[pos + len] != 0 && s[pos + len] != c)
-			len++;
-		arr[i] = malloc(len * sizeof(char) + 1);
+		arr[i] = ft_copy(arr[i], (char *)s, c);
 		if (!arr[i])
 		{
 			ft_free(arr, i);
 			return (0);
 		}
-		pos = ft_copy(arr[i], (char *)s, c, pos);
-		words--;
+		s = ft_next_word((char *)s, c);
 		i++;
 	}
-	arr[i] = 0;
+	arr[i] = NULL;
 	return (arr);
 }
 
@@ -65,55 +47,59 @@ static void	ft_free(char **arr, int i)
 
 static int	ft_words(char *s, char c)
 {
-	int	trigger;
 	int	w;
 
-	trigger = 0;
 	w = 0;
 	while (*s)
 	{
-		if (*s != c && trigger == 0)
+		while (*s == c)
+			s++;
+		if (*s == '\'' || *s == '\"')
 		{
-			if (*s == '\'' || *s == '\"')
-			{
-				s++;
-				while (*s != '\'' && *s != '\"')
-					s++;
-			}
-			trigger = 1;
-			w++;
+			c = *s;
+			s++;
 		}
-		else if (*s == c)
-			trigger = 0;
-		s++;
+		if (*s)
+			w++;
+		while (*s != c && *s)
+			s++;
 	}
 	return (w);
 }
 
-static int	ft_copy(char *arr, char *s, char c, int pos)
+static char	*ft_copy(char *arr, char *s, char c)
 {
-	int	i;
+	int	len;
 
-	i = 0;
-	if (s[pos] == '\'' || s[pos] == '\"')
+	while (*s == c)
+		s++;
+	if (*s == '/')
+		s = ft_strrchr(s, '/');
+	if (*s == '\'' || *s == '\"')
 	{
-		pos++;
-		while (s[pos + 1] != '\0')
-		{
-			arr[i] = s[pos];
-			pos++;
-			i++;
-		}
+		c = *s;
+		s++;
 	}
-	else
+	len = 0;
+	while (s[len] && s[len] != c)
+		len++;
+	arr = malloc((len + 1) * sizeof(char));
+	if (!arr)
+		return (0);
+	ft_strlcpy(arr, s, len + 1);
+	return (arr);
+}
+
+static char	*ft_next_word(char *s, char c)
+{
+	while (*s == c)
+		s++;
+	if (*s == '\'' || *s == '\"')
 	{
-		while (s[pos] != '\0' && s[pos] != c)
-		{
-			arr[i] = s[pos];
-			pos++;
-			i++;
-		}
+		c = *s;
+		s++;
 	}
-	arr[i] = '\0';
-	return (pos);
+	while (*s != c && *s)
+		s++;
+	return (s);
 }
