@@ -18,3 +18,15 @@ char	**ft_get_commands(char **argv, int len)
 	}
 	return (commands);
 }
+
+void	ft_close_pipes(t_pipe pipex, int *pipefd)
+{
+	int	i;
+
+	i = 0;
+	while (i < (2 * (pipex.size - 1)))
+	{
+		close(pipefd[i]);
+		i++;
+	}
+}

@@ -3,9 +3,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
-static int	ft_pipex(t_pipe pipe, char **envp);
+static int		ft_pipex(t_pipe pipe, char **envp);
 
-t_pipe		ft_get_data(t_pipe pipex, char **envp);
+static t_pipe	ft_get_data(t_pipe pipex, char **envp);
+
+static t_pipe	ft_get_pipes(t_pipe pipex, int *pipefd);
 
 int	main(int argc, char **argv, char **envp)
 {
@@ -13,7 +15,7 @@ int	main(int argc, char **argv, char **envp)
 	int		status;
 
 	if (argc < 5)
-		exit(127);
+		perror("Not enough arguments:");
 	pipex.infile = open(argv[1], O_RDONLY);
 	pipex.outfile = open(argv[argc - 1], O_RDWR | O_CREAT | O_TRUNC, 0644);
 	if (pipex.infile < 0 || pipex.outfile < 0)
@@ -37,31 +39,33 @@ int	main(int argc, char **argv, char **envp)
 
 static int	ft_pipex(t_pipe pipex, char **envp)
 {
-	int		pipefd[2];
+	pid_t	child;
+	int		*pipefd;
 	int		status;
-	pid_t	child1;
-	pid_t	child2;
 
-	pipe(pipefd);
+	pipefd = (int *)malloc((2 * (pipex.size - 1)) * sizeof(int));
+	if (!pipefd)
+		perror("malloc: ");
+	pipex = ft_get_pipes(pipex, pipefd);
 	pipex = ft_get_data(pipex, envp);
-	child1 = fork();
-	if (child1 < 0)
-		perror("Fork: ");
-	if (child1 == 0)
-		ft_child1_process(pipex, pipefd, envp);
-	child2 = fork();
-	if (child2 < 0)
-		perror("Fork: ");
-	if (child2 == 0)
-		ft_child2_process(pipex, pipefd, envp);
-	close(pipefd[0]);
-	close(pipefd[1]);
-	waitpid(child1, &status, 0);
-	waitpid(child2, &status, 0);
+	pipex.iter = 0;
+	while (pipex.iter < pipex.size)
+	{
+		child = fork();
+		if (child < 0)
+			perror("Fork: ");
+		if (child == 0)
+			ft_child_process(pipex, pipefd, envp);
+		pipex.iter++;
+	}
+	ft_close_pipes(pipex, pipefd);
+	waitpid(-1, &status, 0);
+	close(pipex.infile);
+	close(pipex.outfile);
 	return (WEXITSTATUS(status));
 }
 
-t_pipe	ft_get_data(t_pipe pipex, char **envp)
+static t_pipe	ft_get_data(t_pipe pipex, char **envp)
 {
 	char	*path;
 	char	*line;
@@ -83,7 +87,19 @@ t_pipe	ft_get_data(t_pipe pipex, char **envp)
 		pipex.paths[i] = ft_strjoin(pipex.paths[i], "/");
 		i++;
 	}
-	pipex.cmd1_flag = ft_split_commands(pipex.commands[0], ' ');
-	pipex.cmd2_flag = ft_split_commands(pipex.commands[1], ' ');
+	return (pipex);
+}
+
+static t_pipe	ft_get_pipes(t_pipe pipex, int *pipefd)
+{
+	int	i;
+
+	i = 0;
+	while (i < pipex.size - 1)
+	{
+		if (pipe(pipefd + 2 * i) < 0)
+			perror("Pipe: ");
+		i++;
+	}
 	return (pipex);
 }
